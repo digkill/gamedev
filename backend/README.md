@@ -45,7 +45,7 @@ TEST_DATABASE_URL="postgres://sandbox:change-me@localhost:55432/sandbox?sslmode=
 
 Refresh tokens rotate on every use. Replaying a rotated token revokes the whole family, which is the standard response to a stolen token. Sign-in, code requests, and code checks are rate limited per address and per client address; the counters live in the database, so a restart does not clear them. `X-Forwarded-For` is honoured only when `TRUST_PROXY_HEADERS=true`, because a direct client can otherwise forge it.
 
-Without SMTP credentials the codes are written to the log instead of being sent, which keeps local sign-up working. `devseed` still issues a local token without an account:
+The authentication mechanism is chosen from what the server advertises: PLAIN, else LOGIN, else CRAM-MD5. `net/smtp` ships no LOGIN implementation, and several hosts — Beget among them — offer only that one and answer PLAIN with `504 authentication mechanism not supported`. Without SMTP credentials the codes are written to the log instead of being sent, which keeps local sign-up working. `devseed` still issues a local token without an account:
 
 ```sh
 docker compose -f deploy/compose/docker-compose.yml exec api /app/devseed

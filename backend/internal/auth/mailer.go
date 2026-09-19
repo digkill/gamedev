@@ -92,7 +92,10 @@ func (m SMTPMailer) Send(ctx context.Context, to, subject, body string) error {
 		}
 	}
 	if m.settings.Username != "" {
-		auth := smtp.PlainAuth("", m.settings.Username, m.settings.Password, m.settings.Host)
+		auth, err := m.authMechanism(client)
+		if err != nil {
+			return err
+		}
 		if err := client.Auth(auth); err != nil {
 			return err
 		}
@@ -115,6 +118,60 @@ func (m SMTPMailer) Send(ctx context.Context, to, subject, body string) error {
 		return err
 	}
 	return client.Quit()
+}
+
+// authMechanism picks from what the server actually offers. Several hosts,
+// Beget among them, answer PLAIN with "504 authentication mechanism not
+// supported" and accept only LOGIN.
+func (m SMTPMailer) authMechanism(client *smtp.Client) (smtp.Auth, error) {
+	ok, mechanisms := client.Extension("AUTH")
+	if !ok {
+		return nil, errors.New("smtp server does not offer authentication")
+	}
+	return mechanismFor(mechanisms, m.settings.Username, m.settings.Password, m.settings.Host)
+}
+
+func mechanismFor(offered, username, password, host string) (smtp.Auth, error) {
+	upper := strings.ToUpper(offered)
+	switch {
+	case strings.Contains(upper, "PLAIN"):
+		return smtp.PlainAuth("", username, password, host), nil
+	case strings.Contains(upper, "LOGIN"):
+		return loginAuth{username: username, password: password}, nil
+	case strings.Contains(upper, "CRAM-MD5"):
+		return smtp.CRAMMD5Auth(username, password), nil
+	default:
+		return nil, fmt.Errorf("smtp server offers no supported authentication mechanism (%s)", offered)
+	}
+}
+
+// loginAuth implements the LOGIN mechanism, which net/smtp does not ship.
+// The credentials are sent in clear text, so it refuses to run on a
+// connection that is not encrypted.
+type loginAuth struct {
+	username string
+	password string
+}
+
+func (a loginAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
+	if !server.TLS {
+		return "", nil, errors.New("refusing to send smtp credentials over an unencrypted connection")
+	}
+	return "LOGIN", nil, nil
+}
+
+func (a loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
+	if !more {
+		return nil, nil
+	}
+	switch strings.ToLower(strings.TrimSpace(strings.TrimSuffix(string(fromServer), ":"))) {
+	case "username":
+		return []byte(a.username), nil
+	case "password":
+		return []byte(a.password), nil
+	default:
+		return nil, fmt.Errorf("unexpected smtp challenge %q", fromServer)
+	}
 }
 
 func (m SMTPMailer) message(to, subject, body string) []byte {
