@@ -1,0 +1,10 @@
+.DS_Store
+**/.env
+**/.env.*
+!**/.env.example
+**/.gradle/
+**/build/
+**/.godot/
+**/local.properties
+**/__pycache__/
+**/*.pyc

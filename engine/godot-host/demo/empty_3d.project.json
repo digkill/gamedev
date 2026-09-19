@@ -1,0 +1,56 @@
+{
+  "manifest": {
+    "schema_version": 1,
+    "project_id": "940d12ab-3602-42f9-b428-0e1056a5e427",
+    "title": "3D sample",
+    "mode": "3d",
+    "entry_scene_id": "d8dbdd75-b745-4f1c-a23b-32643ae57a67",
+    "runtime_api_version": "1.0",
+    "minimum_app_version": "1.0.0",
+    "orientation": "landscape",
+    "input_profile": "touch_third_person",
+    "capabilities": ["scene", "input"],
+    "logic": {"graph": false, "python_sdk_version": "1.0"},
+    "limits_profile": "mobile_standard_v1"
+  },
+  "scenes": [
+    {
+      "id": "d8dbdd75-b745-4f1c-a23b-32643ae57a67",
+      "name": "Stage",
+      "mode": "3d",
+      "entities": [
+        {
+          "id": "2bf470a5-5810-487c-a74b-3886227bca4c",
+          "name": "Orange cube",
+          "parent_id": null,
+          "components": [
+            {"type": "Transform", "space": "3d", "position": [0, 0, 0], "rotation": [0, 25, 0], "scale": [2, 2, 2]},
+            {"type": "Mesh", "primitive": "box", "material_color": "#FF9944FF"}
+          ]
+        },
+        {
+          "id": "5bc732c2-8bdb-4f22-a9e9-94153e145ca0",
+          "name": "Camera",
+          "parent_id": null,
+          "components": [
+            {"type": "Transform", "space": "3d", "position": [0, 2, 8], "rotation": [-12, 0, 0], "scale": [1, 1, 1]},
+            {"type": "Camera", "projection": "perspective", "near": 0.1, "far": 1000, "fov_degrees": 70, "active": true}
+          ]
+        },
+        {
+          "id": "b19cbf21-a69a-4ff9-89c6-61f02d93ff33",
+          "name": "Sun",
+          "parent_id": null,
+          "components": [
+            {"type": "Transform", "space": "3d", "position": [0, 4, 0], "rotation": [-45, -35, 0], "scale": [1, 1, 1]},
+            {"type": "Light", "kind": "directional", "color": "#FFFFFFFF", "intensity": 1}
+          ]
+        }
+      ]
+    }
+  ],
+  "assets": [],
+  "scripts": [],
+  "graphs": [],
+  "prefabs": []
+}

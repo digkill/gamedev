@@ -1,0 +1,468 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandbox.example/contracts/project/change-set/v1",
+  "title": "Atomic project change set v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "base_revision_id",
+    "operations"
+  ],
+  "properties": {
+    "base_revision_id": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/operation"
+      }
+    }
+  },
+  "$defs": {
+    "operation": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/CreateScene"
+        },
+        {
+          "$ref": "#/$defs/SetSceneRules"
+        },
+        {
+          "$ref": "#/$defs/CreateEntity"
+        },
+        {
+          "$ref": "#/$defs/DeleteEntity"
+        },
+        {
+          "$ref": "#/$defs/SetComponent"
+        },
+        {
+          "$ref": "#/$defs/SetProperty"
+        },
+        {
+          "$ref": "#/$defs/CreatePrefab"
+        },
+        {
+          "$ref": "#/$defs/UpdateGraph"
+        },
+        {
+          "$ref": "#/$defs/SetScript"
+        },
+        {
+          "$ref": "#/$defs/AddApprovedAsset"
+        },
+        {
+          "$ref": "#/$defs/SetProjectSetting"
+        }
+      ]
+    },
+    "CreateScene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "type",
+        "scene"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "type": {
+          "const": "CreateScene"
+        },
+        "scene": {
+          "$ref": "project.schema.json#/$defs/scene"
+        }
+      }
+    },
+    "CreateEntity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "type",
+        "scene_id",
+        "entity"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "type": {
+          "const": "CreateEntity"
+        },
+        "scene_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "entity": {
+          "$ref": "project.schema.json#/$defs/entity"
+        }
+      }
+    },
+    "DeleteEntity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "type",
+        "scene_id",
+        "entity_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "type": {
+          "const": "DeleteEntity"
+        },
+        "scene_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "entity_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        }
+      }
+    },
+    "SetComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "type",
+        "scene_id",
+        "entity_id",
+        "component"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "type": {
+          "const": "SetComponent"
+        },
+        "scene_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "entity_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "component": {
+          "$ref": "components.schema.json#/$defs/component"
+        }
+      }
+    },
+    "SetProperty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "type",
+        "scene_id",
+        "entity_id",
+        "property",
+        "value"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "type": {
+          "const": "SetProperty"
+        },
+        "scene_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "entity_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "property": {
+          "enum": [
+            "Transform.position",
+            "Transform.rotation",
+            "Transform.scale",
+            "Sprite.tint",
+            "Sprite.layer",
+            "Mesh.material_color",
+            "Camera.active",
+            "Camera.fov_degrees",
+            "Camera.size",
+            "Light.color",
+            "Light.intensity",
+            "Collider.size",
+            "Collider.is_trigger",
+            "Body.kind",
+            "Body.mass",
+            "Body.gravity_scale",
+            "Body.friction",
+            "Body.restitution",
+            "CharacterController.move_speed",
+            "CharacterController.jump_speed",
+            "CharacterController.acceleration",
+            "CharacterController.air_control",
+            "CharacterController.double_jump",
+            "Health.maximum",
+            "Health.initial",
+            "Health.invulnerable_seconds",
+            "Damage.amount",
+            "Damage.cooldown_seconds",
+            "Collectible.value",
+            "Collectible.respawn_seconds",
+            "Patrol.speed",
+            "Patrol.points",
+            "Chase.speed",
+            "Chase.activation_range",
+            "Spawner.interval_seconds",
+            "Spawner.max_alive",
+            "Spawner.total",
+            "Timer.duration_seconds",
+            "UIWidget.text",
+            "UIWidget.color",
+            "CameraFollow.smoothing",
+            "CameraFollow.offset"
+          ]
+        },
+        "value": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number",
+              "minimum": -100000,
+              "maximum": 100000
+            },
+            {
+              "type": "string",
+              "maxLength": 120
+            },
+            {
+              "$ref": "common.schema.json#/$defs/color"
+            },
+            {
+              "$ref": "common.schema.json#/$defs/vector2"
+            },
+            {
+              "$ref": "common.schema.json#/$defs/vector3"
+            },
+            {
+              "description": "Patrol.points",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 32,
+              "items": {
+                "oneOf": [
+                  {
+                    "$ref": "common.schema.json#/$defs/vector2"
+                  },
+                  {
+                    "$ref": "common.schema.json#/$defs/vector3"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "CreatePrefab": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "type",
+        "prefab"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "type": {
+          "const": "CreatePrefab"
+        },
+        "prefab": {
+          "$ref": "project.schema.json#/$defs/prefab"
+        }
+      }
+    },
+    "UpdateGraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "type",
+        "graph"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "type": {
+          "const": "UpdateGraph"
+        },
+        "graph": {
+          "$ref": "project.schema.json#/$defs/graph"
+        }
+      }
+    },
+    "SetScript": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "type",
+        "script"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "type": {
+          "const": "SetScript"
+        },
+        "script": {
+          "$ref": "project.schema.json#/$defs/script"
+        }
+      }
+    },
+    "AddApprovedAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "type",
+        "asset_id",
+        "catalog_version_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "type": {
+          "const": "AddApprovedAsset"
+        },
+        "asset_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "catalog_version_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        }
+      }
+    },
+    "SetProjectSetting": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation_id",
+            "type",
+            "setting",
+            "value"
+          ],
+          "properties": {
+            "operation_id": {
+              "$ref": "common.schema.json#/$defs/uuid"
+            },
+            "type": {
+              "const": "SetProjectSetting"
+            },
+            "setting": {
+              "const": "title"
+            },
+            "value": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation_id",
+            "type",
+            "setting",
+            "value"
+          ],
+          "properties": {
+            "operation_id": {
+              "$ref": "common.schema.json#/$defs/uuid"
+            },
+            "type": {
+              "const": "SetProjectSetting"
+            },
+            "setting": {
+              "const": "orientation"
+            },
+            "value": {
+              "enum": [
+                "portrait",
+                "landscape",
+                "auto"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation_id",
+            "type",
+            "setting",
+            "value"
+          ],
+          "properties": {
+            "operation_id": {
+              "$ref": "common.schema.json#/$defs/uuid"
+            },
+            "type": {
+              "const": "SetProjectSetting"
+            },
+            "setting": {
+              "const": "input_profile"
+            },
+            "value": {
+              "enum": [
+                "touch_platformer",
+                "touch_top_down",
+                "touch_first_person",
+                "touch_third_person",
+                "touch_generic"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "SetSceneRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "type",
+        "scene_id",
+        "rules"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "type": {
+          "const": "SetSceneRules"
+        },
+        "scene_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "rules": {
+          "$ref": "project.schema.json#/$defs/scene_rules"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:18.6
+    environment:
+      POSTGRES_USER: sandbox
+      POSTGRES_PASSWORD: change-me
+      POSTGRES_DB: sandbox
+    ports:
+      - "55432:5432"
+    volumes:
+      - sandbox_pg:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sandbox -d sandbox"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ../../backend
+      dockerfile: ../deploy/containers/api/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "18081:8080"
+    environment:
+      APP_ENV: development
+      HTTP_ADDR: 0.0.0.0:8080
+      PUBLIC_BASE_URL: http://127.0.0.1:18081
+      DATABASE_URL: postgres://sandbox:change-me@postgres:5432/sandbox?sslmode=disable
+      DB_MAX_CONNS: "20"
+      LOG_LEVEL: info
+    env_file:
+      - ../../backend/.env
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+
+volumes:
+  sandbox_pg:

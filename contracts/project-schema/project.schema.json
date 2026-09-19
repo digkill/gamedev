@@ -1,0 +1,526 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandbox.example/contracts/project/v1",
+  "title": "GameProject v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest",
+    "scenes",
+    "prefabs",
+    "graphs",
+    "scripts",
+    "assets"
+  ],
+  "properties": {
+    "manifest": {
+      "$ref": "manifest.schema.json"
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "$ref": "#/$defs/scene"
+      }
+    },
+    "prefabs": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "$ref": "#/$defs/prefab"
+      }
+    },
+    "graphs": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "$ref": "#/$defs/graph"
+      }
+    },
+    "scripts": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "$ref": "#/$defs/script"
+      }
+    },
+    "assets": {
+      "type": "array",
+      "maxItems": 2048,
+      "items": {
+        "$ref": "#/$defs/asset"
+      }
+    }
+  },
+  "$defs": {
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "parent_id",
+        "components"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "name": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "parent_id": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "common.schema.json#/$defs/uuid"
+            }
+          ]
+        },
+        "prefab_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "components": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "$ref": "components.schema.json#/$defs/component"
+          }
+        },
+        "logic": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "graph_id": {
+              "$ref": "common.schema.json#/$defs/uuid"
+            },
+            "script_id": {
+              "$ref": "common.schema.json#/$defs/uuid"
+            }
+          },
+          "minProperties": 1
+        },
+        "enabled": {
+          "description": "Defaults to true. A disabled entity is loaded but not activated, which is how a Spawner template lives in the scene.",
+          "type": "boolean"
+        }
+      }
+    },
+    "scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "mode",
+        "entities"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "name": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "mode": {
+          "enum": [
+            "2d",
+            "3d"
+          ]
+        },
+        "entities": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/entity"
+          }
+        },
+        "rules": {
+          "$ref": "#/$defs/scene_rules"
+        }
+      }
+    },
+    "prefab": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "mode",
+        "entities"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "name": {
+          "$ref": "common.schema.json#/$defs/name"
+        },
+        "mode": {
+          "enum": [
+            "2d",
+            "3d"
+          ]
+        },
+        "entities": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/entity"
+          }
+        }
+      }
+    },
+    "graph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "nodes",
+        "edges"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "nodes": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/graph_node"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "maxItems": 2000,
+          "items": {
+            "$ref": "#/$defs/graph_edge"
+          }
+        }
+      }
+    },
+    "graph_node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "op"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "op": {
+          "enum": [
+            "on_start",
+            "on_tick",
+            "on_input",
+            "on_collision",
+            "on_trigger",
+            "on_timer",
+            "on_animation_finished",
+            "on_value_changed",
+            "compare",
+            "and",
+            "or",
+            "has_tag",
+            "has_item",
+            "move",
+            "spawn",
+            "destroy",
+            "set_component",
+            "play_audio",
+            "play_animation",
+            "set_ui",
+            "change_scene",
+            "save_state"
+          ]
+        },
+        "target_entity_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "target_scene_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "target_prefab_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        }
+      }
+    },
+    "graph_edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "to"
+      ],
+      "properties": {
+        "from": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "to": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        }
+      }
+    },
+    "script": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "language",
+        "source"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "language": {
+          "const": "python-sdk-1.0"
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 65536
+        }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "catalog_version_id",
+        "source_sha256",
+        "prepared_sha256",
+        "format",
+        "byte_size",
+        "pipeline_version"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "catalog_version_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "source_sha256": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "prepared_sha256": {
+          "$ref": "common.schema.json#/$defs/hash"
+        },
+        "format": {
+          "enum": [
+            "png",
+            "webp",
+            "glb",
+            "ogg",
+            "wav"
+          ]
+        },
+        "byte_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 104857600
+        },
+        "pipeline_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+$"
+        }
+      }
+    },
+    "scene_rules": {
+      "description": "How the level is won and lost. A closed enumeration rather than a script, so the trusted runtime can execute it without sandboxing user code.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "win",
+        "lose",
+        "on_win",
+        "on_lose"
+      ],
+      "properties": {
+        "gravity": {
+          "description": "Downward acceleration in scene units. Absent keeps the runtime default.",
+          "type": "number",
+          "minimum": -200,
+          "maximum": 200
+        },
+        "win": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "condition"
+          ],
+          "properties": {
+            "condition": {
+              "enum": [
+                "reach_goal",
+                "collect_all",
+                "defeat_all",
+                "survive_time"
+              ]
+            },
+            "seconds": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 36000
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "condition": {
+                    "const": "survive_time"
+                  }
+                },
+                "required": [
+                  "condition"
+                ]
+              },
+              "then": {
+                "required": [
+                  "seconds"
+                ]
+              }
+            }
+          ]
+        },
+        "lose": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "condition"
+          ],
+          "properties": {
+            "condition": {
+              "enum": [
+                "health_zero",
+                "fall_out",
+                "timeout",
+                "none"
+              ]
+            },
+            "seconds": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 36000
+            },
+            "fall_below_y": {
+              "description": "Falling below this line ends the attempt. Required for fall_out and honoured with any other condition.",
+              "type": "number",
+              "minimum": -100000,
+              "maximum": 100000
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "condition": {
+                    "const": "timeout"
+                  }
+                },
+                "required": [
+                  "condition"
+                ]
+              },
+              "then": {
+                "required": [
+                  "seconds"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "condition": {
+                    "const": "fall_out"
+                  }
+                },
+                "required": [
+                  "condition"
+                ]
+              },
+              "then": {
+                "required": [
+                  "fall_below_y"
+                ]
+              }
+            }
+          ]
+        },
+        "on_win": {
+          "enum": [
+            "next_scene",
+            "show_result",
+            "restart"
+          ]
+        },
+        "on_lose": {
+          "enum": [
+            "restart",
+            "show_result"
+          ]
+        },
+        "next_scene_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "bounds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "min",
+            "max"
+          ],
+          "properties": {
+            "min": {
+              "oneOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/vector2"
+                },
+                {
+                  "$ref": "common.schema.json#/$defs/vector3"
+                }
+              ]
+            },
+            "max": {
+              "oneOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/vector2"
+                },
+                {
+                  "$ref": "common.schema.json#/$defs/vector3"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "on_win": {
+                "const": "next_scene"
+              }
+            },
+            "required": [
+              "on_win"
+            ]
+          },
+          "then": {
+            "required": [
+              "next_scene_id"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "manifest": {
+    "schema_version": 1,
+    "project_id": "36b59224-8072-4d12-87ac-255593d3cb1b",
+    "title": "2D sample",
+    "mode": "2d",
+    "entry_scene_id": "403f3d5b-80db-4ee5-af2f-f00e9231414a",
+    "runtime_api_version": "1.0",
+    "minimum_app_version": "1.0.0",
+    "orientation": "landscape",
+    "input_profile": "touch_platformer",
+    "capabilities": ["scene", "input"],
+    "logic": {"graph": false, "python_sdk_version": "1.0"},
+    "limits_profile": "mobile_standard_v1"
+  },
+  "scenes": [
+    {
+      "id": "403f3d5b-80db-4ee5-af2f-f00e9231414a",
+      "name": "Stage",
+      "mode": "2d",
+      "entities": [
+        {
+          "id": "6a2db48a-8245-4bba-bf62-2f44e685e668",
+          "name": "Blue square",
+          "parent_id": null,
+          "components": [
+            {"type": "Transform", "space": "2d", "position": [0, 0], "rotation": 0, "scale": [2, 2]},
+            {"type": "Sprite", "shape": "rectangle", "tint": "#4DA3FFFF", "layer": 0}
+          ]
+        }
+      ]
+    }
+  ],
+  "assets": [],
+  "scripts": [],
+  "graphs": [],
+  "prefabs": []
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandbox.example/contracts/project/manifest/v1",
+  "title": "GameProject manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "project_id", "title", "mode", "entry_scene_id", "runtime_api_version", "minimum_app_version", "orientation", "input_profile", "capabilities", "logic", "limits_profile"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "project_id": {"$ref": "common.schema.json#/$defs/uuid"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 120},
+    "mode": {"enum": ["2d", "3d"]},
+    "entry_scene_id": {"$ref": "common.schema.json#/$defs/uuid"},
+    "runtime_api_version": {"const": "1.0"},
+    "minimum_app_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "orientation": {"enum": ["portrait", "landscape", "auto"]},
+    "input_profile": {"enum": ["touch_platformer", "touch_top_down", "touch_first_person", "touch_third_person", "touch_generic"]},
+    "capabilities": {"type": "array", "uniqueItems": true, "maxItems": 6, "items": {"enum": ["scene", "input", "audio", "ui", "local_save", "physics"]}},
+    "logic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["graph", "python_sdk_version"],
+      "properties": {"graph": {"type": "boolean"}, "python_sdk_version": {"const": "1.0"}}
+    },
+    "limits_profile": {"const": "mobile_standard_v1"}
+  }
+}

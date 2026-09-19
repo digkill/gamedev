@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandbox.example/contracts/project/common/v1",
+  "$defs": {
+    "uuid": {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"},
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "color": {"type": "string", "pattern": "^#[0-9A-Fa-f]{8}$"},
+    "name": {"type": "string", "minLength": 1, "maxLength": 80},
+    "vector2": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": -100000, "maximum": 100000}},
+    "vector3": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number", "minimum": -100000, "maximum": 100000}},
+    "scale2": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0.001, "maximum": 1000}},
+    "scale3": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number", "minimum": 0.001, "maximum": 1000}},
+    "positive2": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "exclusiveMinimum": 0, "maximum": 100000}},
+    "positive3": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number", "exclusiveMinimum": 0, "maximum": 100000}}
+  }
+}

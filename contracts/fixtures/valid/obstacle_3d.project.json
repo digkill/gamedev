@@ -1,0 +1,1146 @@
+{
+  "assets": [],
+  "graphs": [],
+  "manifest": {
+    "capabilities": [
+      "scene",
+      "input",
+      "ui",
+      "physics",
+      "local_save"
+    ],
+    "entry_scene_id": "08034ddd-cddd-4988-942c-24e4e3105c20",
+    "input_profile": "touch_third_person",
+    "limits_profile": "mobile_standard_v1",
+    "logic": {
+      "graph": false,
+      "python_sdk_version": "1.0"
+    },
+    "minimum_app_version": "1.0.0",
+    "mode": "3d",
+    "orientation": "landscape",
+    "project_id": "a9bd81a2-7549-4bed-b26b-bf8d4cf09c5a",
+    "runtime_api_version": "1.0",
+    "schema_version": 1,
+    "title": "Полоса препятствий"
+  },
+  "prefabs": [],
+  "scenes": [
+    {
+      "entities": [
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                6.5,
+                9
+              ],
+              "rotation": [
+                -20,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "active": true,
+              "far": 2000,
+              "fov_degrees": 65,
+              "near": 0.1,
+              "projection": "perspective",
+              "type": "Camera"
+            },
+            {
+              "offset": [
+                0,
+                5,
+                9
+              ],
+              "smoothing": 0.15,
+              "target_tag": "player",
+              "type": "CameraFollow"
+            }
+          ],
+          "id": "c7cd6154-c1b7-41af-a81c-9188e600ff6c",
+          "name": "Камера",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                13.5,
+                0
+              ],
+              "rotation": [
+                -55,
+                -35,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "color": "#FFF6E5FF",
+              "intensity": 1.3,
+              "kind": "directional",
+              "type": "Light"
+            }
+          ],
+          "id": "62df36fb-3cb8-43b1-b23a-e0e24cea4678",
+          "name": "Солнце",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                1.5,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                0.8,
+                1.6,
+                0.8
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#FFD75AFF",
+              "primitive": "capsule",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 1,
+              "mask": 62,
+              "shape": "capsule",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.2,
+              "gravity_scale": 1,
+              "kind": "kinematic",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "acceleration": 45,
+              "air_control": 0.65,
+              "double_jump": false,
+              "jump_speed": 12,
+              "max_slope_degrees": 46,
+              "move_speed": 6,
+              "style": "platformer",
+              "type": "CharacterController"
+            },
+            {
+              "initial": 3,
+              "invulnerable_seconds": 1,
+              "maximum": 3,
+              "type": "Health"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "player"
+              ]
+            }
+          ],
+          "id": "f7a3f4f8-cd29-4156-9a83-782d8c15131d",
+          "name": "Игрок",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                -1,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                8,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4A7C59FF",
+              "primitive": "box",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 2,
+              "mask": 5,
+              "shape": "box",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.6,
+              "gravity_scale": 0,
+              "kind": "static",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "platform"
+              ]
+            }
+          ],
+          "id": "14471293-c73d-4c9d-9ac1-babfca014202",
+          "name": "Старт",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                4.9,
+                -0.5,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                5,
+                0.8,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4A7C59FF",
+              "primitive": "box",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 2,
+              "mask": 5,
+              "shape": "box",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.6,
+              "gravity_scale": 0,
+              "kind": "static",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "platform"
+              ]
+            }
+          ],
+          "id": "f655608d-56f0-463c-ace3-dfa37f30a457",
+          "name": "Уступ 1",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                9.3,
+                1.1,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                5,
+                0.8,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4A7C59FF",
+              "primitive": "box",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 2,
+              "mask": 5,
+              "shape": "box",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.6,
+              "gravity_scale": 0,
+              "kind": "static",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "platform"
+              ]
+            }
+          ],
+          "id": "3b802fae-b1b0-44b6-bb94-11e84d70c671",
+          "name": "Уступ 2",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                14.2,
+                1.1,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                5,
+                0.8,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4A7C59FF",
+              "primitive": "box",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 2,
+              "mask": 5,
+              "shape": "box",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.6,
+              "gravity_scale": 0,
+              "kind": "static",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "platform"
+              ]
+            }
+          ],
+          "id": "5dbffa3d-f72a-46e1-b893-f44dd9247e4c",
+          "name": "Уступ 3",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                18.6,
+                2.7,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                5,
+                0.8,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4A7C59FF",
+              "primitive": "box",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 2,
+              "mask": 5,
+              "shape": "box",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.6,
+              "gravity_scale": 0,
+              "kind": "static",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "platform"
+              ]
+            }
+          ],
+          "id": "50cd83a7-862d-4c15-9c5e-8164db8274d2",
+          "name": "Уступ 4",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                22.12,
+                2.7,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                4,
+                0.8,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4A7C59FF",
+              "primitive": "box",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 2,
+              "mask": 5,
+              "shape": "box",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.6,
+              "gravity_scale": 0,
+              "kind": "static",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "platform"
+              ]
+            }
+          ],
+          "id": "dd28e4d8-3754-4516-863c-d936982b4791",
+          "name": "Площадка финиша",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                12,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                2.2,
+                0.5,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#D9453BFF",
+              "primitive": "box",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": true,
+              "layer": 16,
+              "mask": 1,
+              "shape": "box",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "amount": 1,
+              "cooldown_seconds": 1,
+              "destroy_self": false,
+              "mode": "trigger",
+              "target_tag": "player",
+              "type": "Damage"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "hazard"
+              ]
+            }
+          ],
+          "id": "ae7b5a42-6e00-4075-9348-d3483fb903db",
+          "name": "Шипы 3",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                4.9,
+                1.2,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                0.6,
+                0.6,
+                0.6
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4DA3FFFF",
+              "primitive": "sphere",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": true,
+              "layer": 8,
+              "mask": 1,
+              "shape": "sphere",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "counts_to_goal": false,
+              "kind": "score",
+              "respawn_seconds": 0,
+              "type": "Collectible",
+              "value": 1
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "collectible"
+              ]
+            }
+          ],
+          "id": "fcba2893-401f-40f5-9cb5-37e34d22ef25",
+          "name": "Монета 1",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                9.3,
+                2.8,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                0.6,
+                0.6,
+                0.6
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4DA3FFFF",
+              "primitive": "sphere",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": true,
+              "layer": 8,
+              "mask": 1,
+              "shape": "sphere",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "counts_to_goal": false,
+              "kind": "score",
+              "respawn_seconds": 0,
+              "type": "Collectible",
+              "value": 1
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "collectible"
+              ]
+            }
+          ],
+          "id": "e95930e1-be22-46ed-9bee-8f56be9517fd",
+          "name": "Монета 2",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                14.2,
+                2.8,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                0.6,
+                0.6,
+                0.6
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4DA3FFFF",
+              "primitive": "sphere",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": true,
+              "layer": 8,
+              "mask": 1,
+              "shape": "sphere",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "counts_to_goal": false,
+              "kind": "score",
+              "respawn_seconds": 0,
+              "type": "Collectible",
+              "value": 1
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "collectible"
+              ]
+            }
+          ],
+          "id": "a7c227bf-c4ba-46a1-b0b6-0b1ba6c627e1",
+          "name": "Монета 3",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                18.6,
+                4.4,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                0.6,
+                0.6,
+                0.6
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4DA3FFFF",
+              "primitive": "sphere",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": true,
+              "layer": 8,
+              "mask": 1,
+              "shape": "sphere",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "counts_to_goal": false,
+              "kind": "score",
+              "respawn_seconds": 0,
+              "type": "Collectible",
+              "value": 1
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "collectible"
+              ]
+            }
+          ],
+          "id": "263dadb5-4172-4439-ad83-b7ecc100eb26",
+          "name": "Монета 4",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                11.16,
+                2.5,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                0.8,
+                1.6,
+                0.8
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#B5479BFF",
+              "primitive": "capsule",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 4,
+              "mask": 3,
+              "shape": "capsule",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.2,
+              "gravity_scale": 0,
+              "kind": "kinematic",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "amount": 1,
+              "cooldown_seconds": 1,
+              "destroy_self": false,
+              "mode": "contact",
+              "target_tag": "player",
+              "type": "Damage"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "enemy"
+              ]
+            },
+            {
+              "initial": 1,
+              "invulnerable_seconds": 0,
+              "maximum": 1,
+              "type": "Health"
+            },
+            {
+              "loop": "ping_pong",
+              "points": [
+                [
+                  8.66,
+                  2.5,
+                  0
+                ],
+                [
+                  13.66,
+                  2.5,
+                  0
+                ]
+              ],
+              "speed": 2,
+              "type": "Patrol"
+            }
+          ],
+          "id": "602d06c5-ef60-443f-b14e-25c65ad3f6cb",
+          "name": "Патрульный",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                22.12,
+                4.4,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1.2,
+                2.4,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#7BE495FF",
+              "primitive": "box",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": true,
+              "layer": 32,
+              "mask": 1,
+              "shape": "box",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "outcome": "win",
+              "requires": "none",
+              "type": "Goal"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "goal"
+              ]
+            }
+          ],
+          "id": "cab92b80-84bd-449b-9436-20986c4421ad",
+          "name": "Финиш",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "action": "none",
+              "anchor": "top_left",
+              "binding": "health",
+              "color": "#F2F4F8FF",
+              "offset": [
+                16,
+                16
+              ],
+              "size": [
+                200,
+                20
+              ],
+              "type": "UIWidget",
+              "widget": "health_bar"
+            }
+          ],
+          "id": "e4446aff-53db-4729-9e6b-42210bdf0336",
+          "name": "Полоса здоровья",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "action": "none",
+              "anchor": "top_right",
+              "binding": "score",
+              "color": "#F2F4F8FF",
+              "offset": [
+                -16,
+                16
+              ],
+              "size": [
+                160,
+                24
+              ],
+              "type": "UIWidget",
+              "widget": "score"
+            }
+          ],
+          "id": "04c016c1-ef31-4070-8483-ecae72494a39",
+          "name": "Счёт",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "action": "none",
+              "anchor": "bottom_center",
+              "binding": "none",
+              "color": "#F2F4F8FF",
+              "offset": [
+                0,
+                -24
+              ],
+              "size": [
+                460,
+                26
+              ],
+              "text": "Двигайся вправо, собирай монеты и дойди до финиша",
+              "type": "UIWidget",
+              "widget": "label"
+            }
+          ],
+          "id": "3ac0cb5a-bd20-4903-b55c-336e6b3a69a3",
+          "name": "Подсказка",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "action": "restart",
+              "anchor": "bottom_right",
+              "binding": "none",
+              "color": "#F2F4F8FF",
+              "offset": [
+                -16,
+                -16
+              ],
+              "size": [
+                128,
+                44
+              ],
+              "text": "Заново",
+              "type": "UIWidget",
+              "widget": "button"
+            }
+          ],
+          "id": "a37fdb1b-6c41-4d53-9ab6-99f71961f735",
+          "name": "Заново",
+          "parent_id": null
+        }
+      ],
+      "id": "08034ddd-cddd-4988-942c-24e4e3105c20",
+      "mode": "3d",
+      "name": "Уровень 1",
+      "rules": {
+        "bounds": {
+          "max": [
+            34.12,
+            15.6,
+            10.5
+          ],
+          "min": [
+            -14,
+            -11.5,
+            -10.5
+          ]
+        },
+        "gravity": -18,
+        "lose": {
+          "condition": "health_zero",
+          "fall_below_y": -13.5
+        },
+        "on_lose": "restart",
+        "on_win": "show_result",
+        "win": {
+          "condition": "reach_goal"
+        }
+      }
+    }
+  ],
+  "scripts": []
+}

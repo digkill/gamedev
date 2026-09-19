@@ -1,0 +1,540 @@
+openapi: 3.1.0
+info:
+  title: AI Sandbox API
+  version: 0.1.0
+  description: >-
+    Stage-1 subset of the v1 API. Assets and builds are not implemented.
+    Email identity, the single-shot AI edit, and the asynchronous agent
+    conveyor that builds a complete game are implemented.
+servers:
+  - url: http://localhost:8080
+paths:
+  /health/live:
+    get:
+      summary: Process liveness
+      responses:
+        "200":
+          description: Process is running
+  /health/ready:
+    get:
+      summary: Dependency readiness
+      responses:
+        "200":
+          description: Database is reachable
+        "503":
+          description: Database unavailable
+  /api/v1/projects:
+    get:
+      summary: List owned projects
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/cursor"
+      responses:
+        "200":
+          description: Page of projects
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Create a project from a validated GameProject document
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/idempotency"
+      responses:
+        "201":
+          description: Created
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Invalid"
+  /api/v1/projects/{id}:
+    parameters:
+      - $ref: "#/components/parameters/projectId"
+    get:
+      summary: Get the current project head
+      security: [{bearerAuth: []}]
+      responses:
+        "200":
+          description: Project
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: Rename a project through a new revision
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/idempotency"
+      responses:
+        "200":
+          description: Updated
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      summary: Move a project to the trash
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/idempotency"
+        - $ref: "#/components/parameters/ifMatch"
+      responses:
+        "204":
+          description: Trashed
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /api/v1/projects/{id}/restore:
+    post:
+      summary: Restore a project from the trash
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+        - $ref: "#/components/parameters/idempotency"
+      responses:
+        "200":
+          description: Restored
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/projects/{id}/revisions:
+    get:
+      summary: List immutable revisions
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/cursor"
+      responses:
+        "200":
+          description: Page of revisions
+  /api/v1/projects/{id}/revisions/{revision_id}:
+    get:
+      summary: Read a revision snapshot
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+        - name: revision_id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Revision including manifest
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/projects/{id}/changes:
+    post:
+      summary: Apply an atomic command set to the expected base revision
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+        - $ref: "#/components/parameters/idempotency"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "../project-schema/change-set.schema.json"
+      responses:
+        "200":
+          description: New head revision
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /api/v1/projects/{id}/ai/generations:
+    post:
+      summary: Generate typed scene changes with the server OpenAI adapter and apply them if they validate
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+        - $ref: "#/components/parameters/idempotency"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [prompt, base_revision_id]
+              properties:
+                prompt: {type: string, minLength: 1, maxLength: 10000}
+                base_revision_id: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Generation applied as a new ai revision
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Invalid"
+        "503":
+          description: OpenAI is not configured or temporarily unavailable
+  /api/v1/auth/register:
+    post:
+      summary: Create an account and email a confirmation code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email, password]
+              properties:
+                email: {type: string, format: email, maxLength: 254}
+                password: {type: string, minLength: 10, maxLength: 200}
+                display_name: {type: string, minLength: 1, maxLength: 120}
+      responses:
+        "202":
+          $ref: "#/components/responses/CodeSent"
+        "409":
+          description: The address already has a confirmed account
+        "422":
+          $ref: "#/components/responses/Invalid"
+        "429":
+          $ref: "#/components/responses/TooManyAttempts"
+        "503":
+          description: The message could not be sent
+  /api/v1/auth/verify:
+    post:
+      summary: Confirm the address and open a session
+      requestBody:
+        $ref: "#/components/requestBodies/EmailCode"
+      responses:
+        "200":
+          $ref: "#/components/responses/Session"
+        "400":
+          description: The code is wrong or expired
+        "429":
+          $ref: "#/components/responses/TooManyAttempts"
+  /api/v1/auth/resend:
+    post:
+      summary: Send the confirmation code again
+      requestBody:
+        $ref: "#/components/requestBodies/Email"
+      responses:
+        "202":
+          $ref: "#/components/responses/CodeSent"
+        "429":
+          $ref: "#/components/responses/TooManyAttempts"
+  /api/v1/auth/login:
+    post:
+      summary: Sign in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email, password]
+              properties:
+                email: {type: string, format: email}
+                password: {type: string, maxLength: 200}
+      responses:
+        "200":
+          $ref: "#/components/responses/Session"
+        "401":
+          description: Wrong address or password
+        "403":
+          description: The address is not confirmed, or the account is blocked
+        "429":
+          $ref: "#/components/responses/TooManyAttempts"
+  /api/v1/auth/login/code:
+    post:
+      summary: Send a one-time sign-in code
+      requestBody:
+        $ref: "#/components/requestBodies/Email"
+      responses:
+        "202":
+          $ref: "#/components/responses/CodeSent"
+        "429":
+          $ref: "#/components/responses/TooManyAttempts"
+  /api/v1/auth/login/code/verify:
+    post:
+      summary: Sign in with a one-time code
+      requestBody:
+        $ref: "#/components/requestBodies/EmailCode"
+      responses:
+        "200":
+          $ref: "#/components/responses/Session"
+        "400":
+          description: The code is wrong or expired
+  /api/v1/auth/password/forgot:
+    post:
+      summary: Send a password-reset code
+      requestBody:
+        $ref: "#/components/requestBodies/Email"
+      responses:
+        "202":
+          $ref: "#/components/responses/CodeSent"
+  /api/v1/auth/password/reset:
+    post:
+      summary: Set a new password and end every other session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email, code, password]
+              properties:
+                email: {type: string, format: email}
+                code: {type: string, pattern: "^[0-9]{6}$"}
+                password: {type: string, minLength: 10, maxLength: 200}
+      responses:
+        "200":
+          $ref: "#/components/responses/Session"
+        "400":
+          description: The code is wrong or expired
+  /api/v1/auth/refresh:
+    post:
+      summary: Rotate the session
+      description: >-
+        Refresh tokens are single use. Replaying a rotated token revokes every
+        session of that account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [refresh_token]
+              properties:
+                refresh_token: {type: string}
+      responses:
+        "200":
+          $ref: "#/components/responses/Session"
+        "401":
+          description: The refresh token is unknown, expired, or already used
+  /api/v1/auth/logout:
+    post:
+      summary: Revoke this session, or every session
+      security: [{bearerAuth: []}]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                refresh_token: {type: string}
+                all_devices: {type: boolean}
+      responses:
+        "204":
+          description: Revoked
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v1/auth/me:
+    get:
+      summary: The signed-in account
+      security: [{bearerAuth: []}]
+      responses:
+        "200":
+          description: Account
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    patch:
+      summary: Rename the signed-in account
+      security: [{bearerAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [display_name]
+              properties:
+                display_name: {type: string, minLength: 1, maxLength: 120}
+      responses:
+        "200":
+          description: Account
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v1/games:
+    post:
+      summary: Build a complete game with the agent conveyor
+      description: >-
+        Queues a job that runs architect, game designer, developer, compiler,
+        tester, reviewer, and auditor in order, then stores the finished game
+        as a new project. Poll the job for the result.
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/idempotency"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [prompt]
+              properties:
+                prompt: {type: string, minLength: 4, maxLength: 10000}
+                mode: {enum: ["2d", "3d"], default: "2d"}
+                title: {type: string, minLength: 1, maxLength: 120}
+      responses:
+        "202":
+          $ref: "#/components/responses/Job"
+        "422":
+          $ref: "#/components/responses/Invalid"
+        "429":
+          description: Two jobs of this account are already running
+        "503":
+          description: No model provider is configured
+  /api/v1/projects/{id}/ai/pipeline:
+    post:
+      summary: Rebuild an existing project with the agent conveyor
+      description: >-
+        Runs the same conveyor over an existing project, reading the stored
+        context of earlier runs, and stores the result as a new revision.
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+        - $ref: "#/components/parameters/idempotency"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [prompt]
+              properties:
+                prompt: {type: string, minLength: 4, maxLength: 10000}
+                base_revision_id: {type: string, format: uuid}
+      responses:
+        "202":
+          $ref: "#/components/responses/Job"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /api/v1/ai/jobs:
+    get:
+      summary: Recent conveyor jobs
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Page of jobs
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v1/ai/jobs/{job_id}:
+    get:
+      summary: One job with its per-agent steps
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/jobId"
+      responses:
+        "200":
+          description: >-
+            status is queued, running, succeeded, failed, or cancelled. stage
+            names the agent in progress. result carries project_id, the scene
+            statistics, and degraded=true when a deterministic repair or the
+            template fallback was used.
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/ai/jobs/{job_id}/cancel:
+    post:
+      summary: Ask a running job to stop
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/jobId"
+      responses:
+        "202":
+          description: Cancellation requested; the job stops at the next stage
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/projects/{id}/ai/context:
+    get:
+      summary: What the conveyor remembers about this project
+      description: >-
+        The same material the agents read: the blueprint, the design, the
+        level spec, the test and review reports, and the summary.
+      security: [{bearerAuth: []}]
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+      responses:
+        "200":
+          description: Context entries, newest first
+        "404":
+          $ref: "#/components/responses/NotFound"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    projectId:
+      name: id
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+    limit:
+      name: limit
+      in: query
+      schema: {type: integer, minimum: 1, maximum: 100, default: 20}
+    cursor:
+      name: cursor
+      in: query
+      schema: {type: string, format: uuid}
+    idempotency:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: {type: string, minLength: 1, maxLength: 200}
+    jobId:
+      name: job_id
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+    ifMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema: {type: integer, minimum: 0}
+      description: Current lock_version
+  requestBodies:
+    Email:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [email]
+            properties:
+              email: {type: string, format: email, maxLength: 254}
+    EmailCode:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [email, code]
+            properties:
+              email: {type: string, format: email, maxLength: 254}
+              code: {type: string, pattern: "^[0-9]{6}$"}
+  responses:
+    Session:
+      description: >-
+        Access token, single-use refresh token, their expiry times, and the
+        account.
+    CodeSent:
+      description: >-
+        A six-digit code was sent if the address can receive one. The response
+        is the same whether or not the address is registered.
+    Job:
+      description: The queued job; poll /api/v1/ai/jobs/{job_id} for progress
+    TooManyAttempts:
+      description: Rate limit for this address or client address
+    Unauthorized:
+      description: Missing or invalid bearer token
+    NotFound:
+      description: No accessible object
+    Conflict:
+      description: Revision, lock, or idempotency conflict
+    Invalid:
+      description: Document or command failed validation

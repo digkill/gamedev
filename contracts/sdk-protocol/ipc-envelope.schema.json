@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandbox.example/contracts/sdk/ipc-envelope/v1",
+  "title": "Python sandbox IPC envelope v1",
+  "oneOf": [{"$ref": "#/$defs/host_envelope"}, {"$ref": "#/$defs/sandbox_envelope"}],
+  "$defs": {
+    "uuid": {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"},
+    "key": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"},
+    "value": {"oneOf": [
+      {"type": "null"}, {"type": "boolean"},
+      {"type": "number", "minimum": -1000000000, "maximum": 1000000000},
+      {"type": "string", "maxLength": 1024},
+      {"type": "array", "minItems": 2, "maxItems": 3, "items": {"type": "number", "minimum": -100000, "maximum": 100000}}
+    ]},
+    "host_envelope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["protocol_version", "session_id", "sequence", "tick", "direction", "messages"],
+      "properties": {
+        "protocol_version": {"const": "1.0"}, "session_id": {"$ref": "#/$defs/uuid"},
+        "sequence": {"type": "integer", "minimum": 0}, "tick": {"type": "integer", "minimum": 0},
+        "direction": {"const": "host_to_sandbox"},
+        "messages": {"type": "array", "maxItems": 256, "items": {"$ref": "#/$defs/host_message"}}
+      }
+    },
+    "sandbox_envelope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["protocol_version", "session_id", "sequence", "tick", "direction", "commands"],
+      "properties": {
+        "protocol_version": {"const": "1.0"}, "session_id": {"$ref": "#/$defs/uuid"},
+        "sequence": {"type": "integer", "minimum": 0}, "tick": {"type": "integer", "minimum": 0},
+        "direction": {"const": "sandbox_to_host"},
+        "commands": {"type": "array", "maxItems": 256, "items": {"$ref": "#/$defs/sandbox_command"}}
+      }
+    },
+    "host_message": {"oneOf": [
+      {"type": "object", "additionalProperties": false, "required": ["type", "delta_ms"], "properties": {"type": {"const": "tick"}, "delta_ms": {"type": "number", "minimum": 0, "maximum": 1000}}},
+      {"type": "object", "additionalProperties": false, "required": ["type", "action", "pressed", "strength"], "properties": {"type": {"const": "input_action"}, "action": {"$ref": "#/$defs/key"}, "pressed": {"type": "boolean"}, "strength": {"type": "number", "minimum": 0, "maximum": 1}}},
+      {"type": "object", "additionalProperties": false, "required": ["type", "entity_id", "other_entity_id"], "properties": {"type": {"const": "collision"}, "entity_id": {"$ref": "#/$defs/uuid"}, "other_entity_id": {"$ref": "#/$defs/uuid"}}},
+      {"type": "object", "additionalProperties": false, "required": ["type", "scene_id", "entities"], "properties": {"type": {"const": "scene_snapshot"}, "scene_id": {"$ref": "#/$defs/uuid"}, "entities": {"type": "array", "maxItems": 1000, "items": {"type": "object", "additionalProperties": false, "required": ["id", "position"], "properties": {"id": {"$ref": "#/$defs/uuid"}, "position": {"type": "array", "minItems": 2, "maxItems": 3, "items": {"type": "number", "minimum": -100000, "maximum": 100000}}}}}}
+    ]},
+    "sandbox_command": {"oneOf": [
+      {"type": "object", "additionalProperties": false, "required": ["command_id", "type", "name", "value"], "properties": {"command_id": {"$ref": "#/$defs/uuid"}, "type": {"const": "set_variable"}, "name": {"$ref": "#/$defs/key"}, "value": {"$ref": "#/$defs/value"}}},
+      {"type": "object", "additionalProperties": false, "required": ["command_id", "type", "prefab_id", "position"], "properties": {"command_id": {"$ref": "#/$defs/uuid"}, "type": {"const": "spawn_prefab"}, "prefab_id": {"$ref": "#/$defs/uuid"}, "position": {"type": "array", "minItems": 2, "maxItems": 3, "items": {"type": "number", "minimum": -100000, "maximum": 100000}}}},
+      {"type": "object", "additionalProperties": false, "required": ["command_id", "type", "entity_id"], "properties": {"command_id": {"$ref": "#/$defs/uuid"}, "type": {"const": "destroy_entity"}, "entity_id": {"$ref": "#/$defs/uuid"}}},
+      {"type": "object", "additionalProperties": false, "required": ["command_id", "type", "entity_id", "clip"], "properties": {"command_id": {"$ref": "#/$defs/uuid"}, "type": {"const": "play_animation"}, "entity_id": {"$ref": "#/$defs/uuid"}, "clip": {"$ref": "#/$defs/key"}}},
+      {"type": "object", "additionalProperties": false, "required": ["command_id", "type", "asset_id"], "properties": {"command_id": {"$ref": "#/$defs/uuid"}, "type": {"const": "play_audio"}, "asset_id": {"$ref": "#/$defs/uuid"}}},
+      {"type": "object", "additionalProperties": false, "required": ["command_id", "type", "widget_id", "text"], "properties": {"command_id": {"$ref": "#/$defs/uuid"}, "type": {"const": "set_ui_text"}, "widget_id": {"$ref": "#/$defs/uuid"}, "text": {"type": "string", "maxLength": 2048}}},
+      {"type": "object", "additionalProperties": false, "required": ["command_id", "type", "timer", "duration_ms"], "properties": {"command_id": {"$ref": "#/$defs/uuid"}, "type": {"const": "set_timer"}, "timer": {"$ref": "#/$defs/key"}, "duration_ms": {"type": "integer", "minimum": 1, "maximum": 3600000}}},
+      {"type": "object", "additionalProperties": false, "required": ["command_id", "type", "scene_id"], "properties": {"command_id": {"$ref": "#/$defs/uuid"}, "type": {"const": "change_scene"}, "scene_id": {"$ref": "#/$defs/uuid"}}},
+      {"type": "object", "additionalProperties": false, "required": ["command_id", "type", "slot", "values"], "properties": {"command_id": {"$ref": "#/$defs/uuid"}, "type": {"const": "save_state"}, "slot": {"$ref": "#/$defs/key"}, "values": {"type": "object", "maxProperties": 1000, "propertyNames": {"$ref": "#/$defs/key"}, "additionalProperties": {"$ref": "#/$defs/value"}}}}
+    ]}
+  }
+}

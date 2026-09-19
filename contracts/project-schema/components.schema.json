@@ -1,0 +1,949 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandbox.example/contracts/project/components/v1",
+  "title": "Trusted host component data v1",
+  "$defs": {
+    "Transform2D": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "space",
+        "position",
+        "rotation",
+        "scale"
+      ],
+      "properties": {
+        "type": {
+          "const": "Transform"
+        },
+        "space": {
+          "const": "2d"
+        },
+        "position": {
+          "$ref": "common.schema.json#/$defs/vector2"
+        },
+        "rotation": {
+          "type": "number",
+          "minimum": -360000,
+          "maximum": 360000
+        },
+        "scale": {
+          "$ref": "common.schema.json#/$defs/scale2"
+        }
+      }
+    },
+    "Transform3D": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "space",
+        "position",
+        "rotation",
+        "scale"
+      ],
+      "properties": {
+        "type": {
+          "const": "Transform"
+        },
+        "space": {
+          "const": "3d"
+        },
+        "position": {
+          "$ref": "common.schema.json#/$defs/vector3"
+        },
+        "rotation": {
+          "$ref": "common.schema.json#/$defs/vector3"
+        },
+        "scale": {
+          "$ref": "common.schema.json#/$defs/scale3"
+        }
+      }
+    },
+    "SpriteAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "asset_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "Sprite"
+        },
+        "asset_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "tint": {
+          "$ref": "common.schema.json#/$defs/color"
+        },
+        "layer": {
+          "type": "integer",
+          "minimum": -1000,
+          "maximum": 1000
+        }
+      }
+    },
+    "SpriteShape": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "shape"
+      ],
+      "properties": {
+        "type": {
+          "const": "Sprite"
+        },
+        "shape": {
+          "enum": [
+            "rectangle",
+            "circle"
+          ]
+        },
+        "tint": {
+          "$ref": "common.schema.json#/$defs/color"
+        },
+        "layer": {
+          "type": "integer",
+          "minimum": -1000,
+          "maximum": 1000
+        }
+      }
+    },
+    "MeshAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "asset_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "Mesh"
+        },
+        "asset_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "material_color": {
+          "$ref": "common.schema.json#/$defs/color"
+        }
+      }
+    },
+    "MeshPrimitive": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "primitive"
+      ],
+      "properties": {
+        "type": {
+          "const": "Mesh"
+        },
+        "primitive": {
+          "enum": [
+            "box",
+            "sphere",
+            "capsule",
+            "plane"
+          ]
+        },
+        "material_color": {
+          "$ref": "common.schema.json#/$defs/color"
+        }
+      }
+    },
+    "Camera": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "projection",
+        "near",
+        "far"
+      ],
+      "properties": {
+        "type": {
+          "const": "Camera"
+        },
+        "projection": {
+          "enum": [
+            "orthographic",
+            "perspective"
+          ]
+        },
+        "near": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 10000
+        },
+        "far": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 100000
+        },
+        "fov_degrees": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 179
+        },
+        "size": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 100000
+        },
+        "active": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Collider": {
+      "description": "Collision shape in the entity's local space: the visual primitive is one unit across and Transform.scale gives it its world size.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "shape",
+        "size",
+        "is_trigger",
+        "layer",
+        "mask"
+      ],
+      "properties": {
+        "type": {
+          "const": "Collider"
+        },
+        "shape": {
+          "enum": [
+            "rectangle",
+            "circle",
+            "box",
+            "sphere",
+            "capsule"
+          ]
+        },
+        "size": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 100000
+          }
+        },
+        "is_trigger": {
+          "type": "boolean"
+        },
+        "layer": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        },
+        "mask": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        }
+      }
+    },
+    "Body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "kind",
+        "mass",
+        "gravity_scale",
+        "friction",
+        "restitution"
+      ],
+      "properties": {
+        "type": {
+          "const": "Body"
+        },
+        "kind": {
+          "enum": [
+            "static",
+            "dynamic",
+            "kinematic"
+          ]
+        },
+        "mass": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 100000
+        },
+        "gravity_scale": {
+          "type": "number",
+          "minimum": -10,
+          "maximum": 10
+        },
+        "friction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "restitution": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "Light": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "kind",
+        "color",
+        "intensity"
+      ],
+      "properties": {
+        "type": {
+          "const": "Light"
+        },
+        "kind": {
+          "enum": [
+            "directional",
+            "point",
+            "spot"
+          ]
+        },
+        "color": {
+          "$ref": "common.schema.json#/$defs/color"
+        },
+        "intensity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "range": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 100000
+        },
+        "spot_angle_degrees": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 179
+        }
+      }
+    },
+    "Health": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "maximum",
+        "initial"
+      ],
+      "properties": {
+        "type": {
+          "const": "Health"
+        },
+        "maximum": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "initial": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "invulnerable_seconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60
+        }
+      }
+    },
+    "CharacterController": {
+      "description": "Movement the runtime drives directly. platformer works in both modes; top_down is 2D only; first_person and third_person are 3D only.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "style",
+        "move_speed"
+      ],
+      "properties": {
+        "type": {
+          "const": "CharacterController"
+        },
+        "style": {
+          "enum": [
+            "platformer",
+            "top_down",
+            "first_person",
+            "third_person"
+          ]
+        },
+        "move_speed": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 1000
+        },
+        "jump_speed": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "acceleration": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "air_control": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_slope_degrees": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 89
+        },
+        "double_jump": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Damage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "amount",
+        "mode",
+        "target_tag"
+      ],
+      "properties": {
+        "type": {
+          "const": "Damage"
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "mode": {
+          "enum": [
+            "contact",
+            "trigger"
+          ]
+        },
+        "cooldown_seconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60
+        },
+        "target_tag": {
+          "enum": [
+            "player",
+            "enemy",
+            "collectible",
+            "goal",
+            "hazard",
+            "platform",
+            "wall",
+            "checkpoint",
+            "decor",
+            "projectile"
+          ]
+        },
+        "destroy_self": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Collectible": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "type": {
+          "const": "Collectible"
+        },
+        "kind": {
+          "enum": [
+            "score",
+            "health",
+            "key"
+          ]
+        },
+        "value": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "respawn_seconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3600
+        },
+        "counts_to_goal": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Goal": {
+      "description": "Trigger that ends the level. next_scene_id is required for, and only allowed with, outcome=next_scene.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "requires",
+        "outcome"
+      ],
+      "properties": {
+        "type": {
+          "const": "Goal"
+        },
+        "requires": {
+          "enum": [
+            "none",
+            "all_collectibles",
+            "key"
+          ]
+        },
+        "outcome": {
+          "enum": [
+            "win",
+            "next_scene"
+          ]
+        },
+        "next_scene_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "next_scene"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "required": [
+              "next_scene_id"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "next_scene_id"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "Patrol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "points",
+        "speed",
+        "loop"
+      ],
+      "properties": {
+        "type": {
+          "const": "Patrol"
+        },
+        "points": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 32,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "common.schema.json#/$defs/vector2"
+              },
+              {
+                "$ref": "common.schema.json#/$defs/vector3"
+              }
+            ]
+          }
+        },
+        "speed": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 1000
+        },
+        "loop": {
+          "enum": [
+            "ping_pong",
+            "cycle"
+          ]
+        }
+      }
+    },
+    "Chase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "target_tag",
+        "speed",
+        "activation_range"
+      ],
+      "properties": {
+        "type": {
+          "const": "Chase"
+        },
+        "target_tag": {
+          "enum": [
+            "player",
+            "enemy",
+            "collectible",
+            "goal",
+            "hazard",
+            "platform",
+            "wall",
+            "checkpoint",
+            "decor",
+            "projectile"
+          ]
+        },
+        "speed": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 1000
+        },
+        "activation_range": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 100000
+        },
+        "stop_range": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000
+        }
+      }
+    },
+    "Spawner": {
+      "description": "Copies a disabled template entity from the same scene. total=0 means an endless stream.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "template_entity_id",
+        "interval_seconds",
+        "max_alive",
+        "total"
+      ],
+      "properties": {
+        "type": {
+          "const": "Spawner"
+        },
+        "template_entity_id": {
+          "$ref": "common.schema.json#/$defs/uuid"
+        },
+        "interval_seconds": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 600
+        },
+        "max_alive": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        }
+      }
+    },
+    "Timer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "duration_seconds"
+      ],
+      "properties": {
+        "type": {
+          "const": "Timer"
+        },
+        "duration_seconds": {
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 36000
+        },
+        "repeat": {
+          "type": "boolean"
+        },
+        "autostart": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Tag": {
+      "description": "Roles other components reference by name instead of by entity id.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "values"
+      ],
+      "properties": {
+        "type": {
+          "const": "Tag"
+        },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "player",
+              "enemy",
+              "collectible",
+              "goal",
+              "hazard",
+              "platform",
+              "wall",
+              "checkpoint",
+              "decor",
+              "projectile"
+            ]
+          }
+        }
+      }
+    },
+    "CameraFollow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "target_tag",
+        "offset"
+      ],
+      "properties": {
+        "type": {
+          "const": "CameraFollow"
+        },
+        "target_tag": {
+          "enum": [
+            "player",
+            "enemy",
+            "collectible",
+            "goal",
+            "hazard",
+            "platform",
+            "wall",
+            "checkpoint",
+            "decor",
+            "projectile"
+          ]
+        },
+        "smoothing": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "offset": {
+          "oneOf": [
+            {
+              "$ref": "common.schema.json#/$defs/vector2"
+            },
+            {
+              "$ref": "common.schema.json#/$defs/vector3"
+            }
+          ]
+        },
+        "dead_zone": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100000
+          }
+        }
+      }
+    },
+    "UIWidget": {
+      "description": "Screen-space HUD element. offset and size are in device-independent pixels from the anchor.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "widget",
+        "anchor",
+        "offset",
+        "size",
+        "binding",
+        "action",
+        "color"
+      ],
+      "properties": {
+        "type": {
+          "const": "UIWidget"
+        },
+        "widget": {
+          "enum": [
+            "label",
+            "score",
+            "health_bar",
+            "timer",
+            "button",
+            "panel"
+          ]
+        },
+        "anchor": {
+          "enum": [
+            "top_left",
+            "top_center",
+            "top_right",
+            "center",
+            "bottom_left",
+            "bottom_center",
+            "bottom_right"
+          ]
+        },
+        "offset": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number",
+            "minimum": -10000,
+            "maximum": 10000
+          }
+        },
+        "size": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10000
+          }
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "binding": {
+          "enum": [
+            "none",
+            "score",
+            "health",
+            "timer",
+            "collectibles",
+            "keys"
+          ]
+        },
+        "action": {
+          "enum": [
+            "none",
+            "restart",
+            "next_scene",
+            "pause",
+            "resume"
+          ]
+        },
+        "color": {
+          "$ref": "common.schema.json#/$defs/color"
+        }
+      }
+    },
+    "component": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Transform2D"
+        },
+        {
+          "$ref": "#/$defs/Transform3D"
+        },
+        {
+          "$ref": "#/$defs/SpriteAsset"
+        },
+        {
+          "$ref": "#/$defs/SpriteShape"
+        },
+        {
+          "$ref": "#/$defs/MeshAsset"
+        },
+        {
+          "$ref": "#/$defs/MeshPrimitive"
+        },
+        {
+          "$ref": "#/$defs/Camera"
+        },
+        {
+          "$ref": "#/$defs/Collider"
+        },
+        {
+          "$ref": "#/$defs/Body"
+        },
+        {
+          "$ref": "#/$defs/Light"
+        },
+        {
+          "$ref": "#/$defs/Health"
+        },
+        {
+          "$ref": "#/$defs/CharacterController"
+        },
+        {
+          "$ref": "#/$defs/Damage"
+        },
+        {
+          "$ref": "#/$defs/Collectible"
+        },
+        {
+          "$ref": "#/$defs/Goal"
+        },
+        {
+          "$ref": "#/$defs/Patrol"
+        },
+        {
+          "$ref": "#/$defs/Chase"
+        },
+        {
+          "$ref": "#/$defs/Spawner"
+        },
+        {
+          "$ref": "#/$defs/Timer"
+        },
+        {
+          "$ref": "#/$defs/Tag"
+        },
+        {
+          "$ref": "#/$defs/CameraFollow"
+        },
+        {
+          "$ref": "#/$defs/UIWidget"
+        }
+      ]
+    }
+  }
+}

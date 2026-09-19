@@ -1,0 +1,1038 @@
+{
+  "assets": [],
+  "graphs": [],
+  "manifest": {
+    "capabilities": [
+      "scene",
+      "input",
+      "ui",
+      "physics",
+      "local_save"
+    ],
+    "entry_scene_id": "4ef062b3-c7b6-4516-b010-caa31a4d83a6",
+    "input_profile": "touch_third_person",
+    "limits_profile": "mobile_standard_v1",
+    "logic": {
+      "graph": false,
+      "python_sdk_version": "1.0"
+    },
+    "minimum_app_version": "1.0.0",
+    "mode": "3d",
+    "orientation": "landscape",
+    "project_id": "78ce47e5-dd7a-4bd8-b56d-e8ffdfa060d6",
+    "runtime_api_version": "1.0",
+    "schema_version": 1,
+    "title": "Арена"
+  },
+  "prefabs": [],
+  "scenes": [
+    {
+      "entities": [
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                6.5,
+                9
+              ],
+              "rotation": [
+                -20,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "active": true,
+              "far": 2000,
+              "fov_degrees": 65,
+              "near": 0.1,
+              "projection": "perspective",
+              "type": "Camera"
+            },
+            {
+              "offset": [
+                0,
+                5,
+                9
+              ],
+              "smoothing": 0.15,
+              "target_tag": "player",
+              "type": "CameraFollow"
+            }
+          ],
+          "id": "3c1223d7-52c5-4e10-88d2-c1fff26ea554",
+          "name": "Камера",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                13.5,
+                0
+              ],
+              "rotation": [
+                -55,
+                -35,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "color": "#FFF6E5FF",
+              "intensity": 1.3,
+              "kind": "directional",
+              "type": "Light"
+            }
+          ],
+          "id": "4062c0fa-504c-4f48-9c56-b15c3e889059",
+          "name": "Солнце",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                1.5,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                0.8,
+                1.6,
+                0.8
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#FFD75AFF",
+              "primitive": "capsule",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 1,
+              "mask": 62,
+              "shape": "capsule",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.2,
+              "gravity_scale": 0,
+              "kind": "kinematic",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "acceleration": 45,
+              "air_control": 0.65,
+              "double_jump": false,
+              "jump_speed": 0,
+              "max_slope_degrees": 46,
+              "move_speed": 6,
+              "style": "third_person",
+              "type": "CharacterController"
+            },
+            {
+              "initial": 3,
+              "invulnerable_seconds": 1,
+              "maximum": 3,
+              "type": "Health"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "player"
+              ]
+            }
+          ],
+          "id": "bb54fcb7-17cc-4cfe-a0ca-347b9488c6bb",
+          "name": "Игрок",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                18,
+                1,
+                18
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4A7C59FF",
+              "primitive": "box",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 2,
+              "mask": 5,
+              "shape": "box",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.6,
+              "gravity_scale": 0,
+              "kind": "static",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "platform"
+              ]
+            }
+          ],
+          "id": "3b8c21ab-5c25-4e70-96b8-0a4f8443b713",
+          "name": "Пол",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                6,
+                1,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                2,
+                2,
+                2
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4A7C59FF",
+              "primitive": "box",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 2,
+              "mask": 5,
+              "shape": "box",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.6,
+              "gravity_scale": 0,
+              "kind": "static",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "platform"
+              ]
+            }
+          ],
+          "id": "fe1e769c-7626-40ae-88cf-457af3076f03",
+          "name": "Укрытие 1",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                1,
+                6
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                2,
+                2,
+                2
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4A7C59FF",
+              "primitive": "box",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 2,
+              "mask": 5,
+              "shape": "box",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.6,
+              "gravity_scale": 0,
+              "kind": "static",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "platform"
+              ]
+            }
+          ],
+          "id": "fd510b3f-2623-4760-a103-31c091f94d13",
+          "name": "Укрытие 2",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                -6,
+                1,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                2,
+                2,
+                2
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4A7C59FF",
+              "primitive": "box",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 2,
+              "mask": 5,
+              "shape": "box",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.6,
+              "gravity_scale": 0,
+              "kind": "static",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "platform"
+              ]
+            }
+          ],
+          "id": "38ed237a-3d47-4024-8414-fa9243b8f328",
+          "name": "Укрытие 3",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                -0,
+                1,
+                -6
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                2,
+                2,
+                2
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4A7C59FF",
+              "primitive": "box",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 2,
+              "mask": 5,
+              "shape": "box",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.6,
+              "gravity_scale": 0,
+              "kind": "static",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "platform"
+              ]
+            }
+          ],
+          "id": "4438a1f4-c2cc-456f-8d54-57ebbe86ed54",
+          "name": "Укрытие 4",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                8,
+                1,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                0.6,
+                0.6,
+                0.6
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4DA3FFFF",
+              "primitive": "sphere",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": true,
+              "layer": 8,
+              "mask": 1,
+              "shape": "sphere",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "counts_to_goal": false,
+              "kind": "score",
+              "respawn_seconds": 0,
+              "type": "Collectible",
+              "value": 1
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "collectible"
+              ]
+            }
+          ],
+          "id": "ec39ef7b-08d3-4767-a2b4-7b9eafec1801",
+          "name": "Кристалл 1",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                2,
+                1,
+                6
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                0.6,
+                0.6,
+                0.6
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4DA3FFFF",
+              "primitive": "sphere",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": true,
+              "layer": 8,
+              "mask": 1,
+              "shape": "sphere",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "counts_to_goal": false,
+              "kind": "score",
+              "respawn_seconds": 0,
+              "type": "Collectible",
+              "value": 1
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "collectible"
+              ]
+            }
+          ],
+          "id": "1e3c8670-8cb2-43af-bfc9-88496093f98e",
+          "name": "Кристалл 2",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                -4,
+                1,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                0.6,
+                0.6,
+                0.6
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4DA3FFFF",
+              "primitive": "sphere",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": true,
+              "layer": 8,
+              "mask": 1,
+              "shape": "sphere",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "counts_to_goal": false,
+              "kind": "score",
+              "respawn_seconds": 0,
+              "type": "Collectible",
+              "value": 1
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "collectible"
+              ]
+            }
+          ],
+          "id": "03430305-2f34-493c-8529-0d583ef1f33d",
+          "name": "Кристалл 3",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                2,
+                1,
+                -6
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                0.6,
+                0.6,
+                0.6
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#4DA3FFFF",
+              "primitive": "sphere",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": true,
+              "layer": 8,
+              "mask": 1,
+              "shape": "sphere",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "counts_to_goal": false,
+              "kind": "score",
+              "respawn_seconds": 0,
+              "type": "Collectible",
+              "value": 1
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "collectible"
+              ]
+            }
+          ],
+          "id": "4311e2ce-36fa-4895-8a68-3bb2787cc993",
+          "name": "Кристалл 4",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                0.8,
+                1.6,
+                0.8
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "material_color": "#B5479BFF",
+              "primitive": "capsule",
+              "type": "Mesh"
+            },
+            {
+              "is_trigger": false,
+              "layer": 4,
+              "mask": 3,
+              "shape": "capsule",
+              "size": [
+                1,
+                1,
+                1
+              ],
+              "type": "Collider"
+            },
+            {
+              "friction": 0.2,
+              "gravity_scale": 0,
+              "kind": "kinematic",
+              "mass": 1,
+              "restitution": 0,
+              "type": "Body"
+            },
+            {
+              "amount": 1,
+              "cooldown_seconds": 1,
+              "destroy_self": false,
+              "mode": "contact",
+              "target_tag": "player",
+              "type": "Damage"
+            },
+            {
+              "type": "Tag",
+              "values": [
+                "enemy"
+              ]
+            },
+            {
+              "initial": 1,
+              "invulnerable_seconds": 0,
+              "maximum": 1,
+              "type": "Health"
+            }
+          ],
+          "enabled": false,
+          "id": "bcfe24ef-ab30-48d1-9547-2b5b7e701e24",
+          "name": "Волна (шаблон)",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "interval_seconds": 3,
+              "max_alive": 8,
+              "radius": 3,
+              "template_entity_id": "bcfe24ef-ab30-48d1-9547-2b5b7e701e24",
+              "total": 8,
+              "type": "Spawner"
+            }
+          ],
+          "id": "6457e38e-ac3c-4d29-8219-ef293895da5f",
+          "name": "Волна — появление",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "action": "none",
+              "anchor": "top_left",
+              "binding": "health",
+              "color": "#F2F4F8FF",
+              "offset": [
+                16,
+                16
+              ],
+              "size": [
+                200,
+                20
+              ],
+              "type": "UIWidget",
+              "widget": "health_bar"
+            }
+          ],
+          "id": "6f274a8c-8863-4c77-a2b0-799362aae496",
+          "name": "Полоса здоровья",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "action": "none",
+              "anchor": "top_right",
+              "binding": "score",
+              "color": "#F2F4F8FF",
+              "offset": [
+                -16,
+                16
+              ],
+              "size": [
+                160,
+                24
+              ],
+              "type": "UIWidget",
+              "widget": "score"
+            }
+          ],
+          "id": "e023299e-8894-4ebc-b268-57a24bddae90",
+          "name": "Счёт",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "action": "none",
+              "anchor": "top_center",
+              "binding": "timer",
+              "color": "#F2F4F8FF",
+              "offset": [
+                0,
+                16
+              ],
+              "size": [
+                120,
+                24
+              ],
+              "type": "UIWidget",
+              "widget": "timer"
+            }
+          ],
+          "id": "ae1c7e06-16b4-49fe-bc5b-bb635a27dc2b",
+          "name": "Таймер",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "action": "none",
+              "anchor": "bottom_center",
+              "binding": "none",
+              "color": "#F2F4F8FF",
+              "offset": [
+                0,
+                -24
+              ],
+              "size": [
+                460,
+                26
+              ],
+              "text": "Держись 45 секунд",
+              "type": "UIWidget",
+              "widget": "label"
+            }
+          ],
+          "id": "929c9f71-7a5d-46eb-a5f6-75dd6f32610c",
+          "name": "Подсказка",
+          "parent_id": null
+        },
+        {
+          "components": [
+            {
+              "position": [
+                0,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ],
+              "space": "3d",
+              "type": "Transform"
+            },
+            {
+              "action": "restart",
+              "anchor": "bottom_right",
+              "binding": "none",
+              "color": "#F2F4F8FF",
+              "offset": [
+                -16,
+                -16
+              ],
+              "size": [
+                128,
+                44
+              ],
+              "text": "Заново",
+              "type": "UIWidget",
+              "widget": "button"
+            }
+          ],
+          "id": "def27d5a-f7f0-412e-bd78-130b79f52731",
+          "name": "Заново",
+          "parent_id": null
+        }
+      ],
+      "id": "4ef062b3-c7b6-4516-b010-caa31a4d83a6",
+      "mode": "3d",
+      "name": "Уровень 1",
+      "rules": {
+        "bounds": {
+          "max": [
+            19,
+            12,
+            19
+          ],
+          "min": [
+            -19,
+            -10.8,
+            -19
+          ]
+        },
+        "gravity": 0,
+        "lose": {
+          "condition": "health_zero"
+        },
+        "on_lose": "restart",
+        "on_win": "show_result",
+        "win": {
+          "condition": "survive_time",
+          "seconds": 45
+        }
+      }
+    }
+  ],
+  "scripts": []
+}
