@@ -18,7 +18,7 @@ services:
   api:
     build:
       context: ../../backend
-      dockerfile: ../deploy/containers/api/Dockerfile
+      dockerfile: Dockerfile
     depends_on:
       postgres:
         condition: service_healthy

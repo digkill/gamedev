@@ -6,6 +6,9 @@ Requirements: Go 1.27.1, PostgreSQL (target 18.6), Goose 3.x. `.env.example` con
 
 ## Running
 
+`Dockerfile` sits next to the code it builds, so the build context is the
+`backend` directory and nothing outside it is needed.
+
 From the repository root:
 
 ```sh
