@@ -48,7 +48,6 @@ type Result struct {
 type run struct {
 	pipeline *Pipeline
 	job      Job
-	seq      int
 	notes    []string
 	degraded bool
 }
@@ -509,8 +508,7 @@ func (r *run) beginStep(ctx context.Context, agent string, iteration, progress i
 	if err != nil {
 		return "", err
 	}
-	r.seq++
-	return id, r.pipeline.Store.StartStep(ctx, id, r.job.ID, r.seq, agent, iteration)
+	return id, r.pipeline.Store.StartStep(ctx, id, r.job.ID, agent, iteration)
 }
 
 func (r *run) checkCancel(ctx context.Context) error {

@@ -329,3 +329,66 @@ func TestConveyorRejectsBannedContent(t *testing.T) {
 		t.Fatal("a rejected job must not publish a project")
 	}
 }
+
+// A job whose lease expired is re-claimed and restarted from the first agent.
+// The step numbering has to continue past the earlier attempt instead of
+// reusing seq 1, which used to break the run on a unique-constraint violation.
+func TestReclaimedJobKeepsNumberingSteps(t *testing.T) {
+	pool := openTestDB(t)
+	owner := newTestUser(t, pool)
+	store := Store{DB: pool}
+	ctx := context.Background()
+
+	id, err := projects.NewUUID()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.CreateJob(ctx, id, NewJob{
+		OwnerID: owner, Kind: "create_game", Mode: "2d",
+		Prompt: "Платформер", IdempotencyKey: "reclaim-" + owner,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	claimed, found, err := store.ClaimJob(ctx, time.Minute)
+	if err != nil || !found || claimed.ID != id {
+		t.Fatalf("first claim: %v found=%v", err, found)
+	}
+	for _, agent := range []string{"architect", "game_designer"} {
+		stepID, err := projects.NewUUID()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := store.StartStep(ctx, stepID, id, agent, 1); err != nil {
+			t.Fatalf("first attempt step %s: %v", agent, err)
+		}
+	}
+
+	// The worker died without finishing: expire the lease by hand.
+	if _, err := pool.Exec(ctx, `UPDATE ai_jobs SET lease_expires_at = now() - interval '1 minute' WHERE id=$1`, id); err != nil {
+		t.Fatal(err)
+	}
+	retaken, found, err := store.ClaimJob(ctx, time.Minute)
+	if err != nil || !found || retaken.ID != id {
+		t.Fatalf("a job with an expired lease must be re-claimable: %v found=%v", err, found)
+	}
+	stepID, err := projects.NewUUID()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.StartStep(ctx, stepID, id, "architect", 1); err != nil {
+		t.Fatalf("the restarted run must be able to record its first step: %v", err)
+	}
+
+	job, err := store.Job(ctx, owner, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(job.Steps) != 3 {
+		t.Fatalf("want 3 steps across both attempts, got %d", len(job.Steps))
+	}
+	for i, step := range job.Steps {
+		if step.Seq != i+1 {
+			t.Fatalf("step %d has seq %d; numbering must stay dense and unique", i, step.Seq)
+		}
+	}
+}

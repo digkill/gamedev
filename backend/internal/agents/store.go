@@ -271,9 +271,14 @@ func (s Store) RequestCancel(ctx context.Context, owner, jobID string) error {
 	return nil
 }
 
-func (s Store) StartStep(ctx context.Context, id, jobID string, seq int, agent string, iteration int) error {
+// StartStep appends a step and numbers it from what the job already has, not
+// from a counter in the worker. A job whose lease expired is re-claimed and
+// restarted from the first agent, and an in-memory counter would then reuse
+// seq 1 and collide with the earlier attempt.
+func (s Store) StartStep(ctx context.Context, id, jobID, agent string, iteration int) error {
 	_, err := s.DB.Exec(ctx, `INSERT INTO ai_job_steps (id,job_id,seq,agent,iteration,status)
-		VALUES ($1,$2,$3,$4,$5,'running')`, id, jobID, seq, agent, iteration)
+		SELECT $1, $2, coalesce(max(seq), 0) + 1, $3, $4, 'running'
+		FROM ai_job_steps WHERE job_id = $2`, id, jobID, agent, iteration)
 	return err
 }
 
