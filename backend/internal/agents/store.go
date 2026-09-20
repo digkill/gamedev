@@ -40,6 +40,8 @@ type Job struct {
 	StartedAt       *time.Time      `json:"started_at,omitempty"`
 	FinishedAt      *time.Time      `json:"finished_at,omitempty"`
 	Steps           []Step          `json:"steps,omitempty"`
+	// RunnerID identifies the claim a worker holds. It never leaves the server.
+	RunnerID string `json:"-"`
 }
 
 type Step struct {
@@ -140,7 +142,7 @@ func (s Store) JobByKey(ctx context.Context, owner, kind, key string) (Job, bool
 
 const jobColumns = `SELECT id,owner_id,project_id,kind,status,stage,progress,prompt,mode,title,
 	base_revision_id,cancel_requested,result,coalesce(error_code,''),coalesce(error_message,''),
-	created_at,updated_at,started_at,finished_at`
+	created_at,updated_at,started_at,finished_at,coalesce(runner_id::text,'')`
 
 type scanner interface {
 	Scan(dest ...any) error
@@ -151,7 +153,7 @@ func (s Store) scanJob(row scanner) (Job, error) {
 	err := row.Scan(&job.ID, &job.OwnerID, &job.ProjectID, &job.Kind, &job.Status, &job.Stage,
 		&job.Progress, &job.Prompt, &job.Mode, &job.Title, &job.BaseRevisionID, &job.CancelRequested,
 		&job.Result, &job.ErrorCode, &job.ErrorMessage, &job.CreatedAt, &job.UpdatedAt,
-		&job.StartedAt, &job.FinishedAt)
+		&job.StartedAt, &job.FinishedAt, &job.RunnerID)
 	return job, err
 }
 
@@ -206,13 +208,16 @@ func (s Store) steps(ctx context.Context, jobID string) ([]Step, error) {
 	return items, rows.Err()
 }
 
-// ClaimJob leases the oldest waiting job. SKIP LOCKED lets several workers, in
-// this process or another one, pull from the same queue without colliding.
+// ClaimJob leases the oldest waiting job and stamps the claim with a fresh
+// runner id. SKIP LOCKED keeps two workers from taking the same row at the
+// same moment; the runner id keeps a worker whose lease was judged expired
+// from carrying on beside the worker that took over.
 func (s Store) ClaimJob(ctx context.Context, lease time.Duration) (Job, bool, error) {
 	job, err := s.scanJob(s.DB.QueryRow(ctx, `UPDATE ai_jobs SET
 			status='running',
 			started_at=coalesce(started_at, now()),
 			updated_at=now(),
+			runner_id=gen_random_uuid(),
 			lease_expires_at=now() + $1::interval
 		WHERE id = (
 			SELECT id FROM ai_jobs
@@ -223,7 +228,7 @@ func (s Store) ClaimJob(ctx context.Context, lease time.Duration) (Job, bool, er
 		)
 		RETURNING id,owner_id,project_id,kind,status,stage,progress,prompt,mode,title,
 			base_revision_id,cancel_requested,result,coalesce(error_code,''),coalesce(error_message,''),
-			created_at,updated_at,started_at,finished_at`, lease.String()))
+			created_at,updated_at,started_at,finished_at,coalesce(runner_id::text,'')`, lease.String()))
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Job{}, false, nil
 	}
@@ -233,30 +238,53 @@ func (s Store) ClaimJob(ctx context.Context, lease time.Duration) (Job, bool, er
 	return job, true, nil
 }
 
-func (s Store) Heartbeat(ctx context.Context, jobID string, lease time.Duration) (bool, error) {
+// ErrSuperseded means another worker now owns the job. The caller must stop.
+var ErrSuperseded = errors.New("job was claimed by another worker")
+
+// Heartbeat extends the lease and reports whether a cancellation was asked
+// for. It renews nothing unless this worker still holds the claim.
+func (s Store) Heartbeat(ctx context.Context, jobID, runnerID string, lease time.Duration) (bool, error) {
 	var cancelRequested bool
-	err := s.DB.QueryRow(ctx, `UPDATE ai_jobs SET lease_expires_at=now() + $2::interval, updated_at=now()
-		WHERE id=$1 RETURNING cancel_requested`, jobID, lease.String()).Scan(&cancelRequested)
+	err := s.DB.QueryRow(ctx, `UPDATE ai_jobs SET lease_expires_at=now() + $3::interval, updated_at=now()
+		WHERE id=$1 AND runner_id=$2::uuid RETURNING cancel_requested`,
+		jobID, runnerID, lease.String()).Scan(&cancelRequested)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, ErrSuperseded
+	}
 	return cancelRequested, err
 }
 
-func (s Store) SetStage(ctx context.Context, jobID, stage string, progress int) error {
-	_, err := s.DB.Exec(ctx, `UPDATE ai_jobs SET stage=$2, progress=$3, updated_at=now() WHERE id=$1`,
-		jobID, stage, progress)
-	return err
+func (s Store) SetStage(ctx context.Context, jobID, runnerID, stage string, progress int) error {
+	tag, err := s.DB.Exec(ctx, `UPDATE ai_jobs SET stage=$3, progress=$4, updated_at=now()
+		WHERE id=$1 AND runner_id=$2::uuid`, jobID, runnerID, stage, progress)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrSuperseded
+	}
+	return nil
 }
 
-func (s Store) FinishJob(ctx context.Context, jobID, status string, projectID *string, result json.RawMessage, errorCode, errorMessage string) error {
+func (s Store) FinishJob(ctx context.Context, jobID, runnerID, status string, projectID *string, result json.RawMessage, errorCode, errorMessage string) error {
 	stage := "done"
 	progress := 100
 	if status != "succeeded" {
 		stage = "done"
 		progress = 100
 	}
-	_, err := s.DB.Exec(ctx, `UPDATE ai_jobs SET status=$2, stage=$3, progress=$4, project_id=coalesce($5, project_id),
-		result=$6, error_code=$7, error_message=$8, finished_at=now(), updated_at=now(), lease_expires_at=NULL
-		WHERE id=$1`, jobID, status, stage, progress, projectID, result, nullable(errorCode), nullable(errorMessage))
-	return err
+	tag, err := s.DB.Exec(ctx, `UPDATE ai_jobs SET status=$3, stage=$4, progress=$5, project_id=coalesce($6, project_id),
+		result=$7, error_code=$8, error_message=$9, finished_at=now(), updated_at=now(), lease_expires_at=NULL
+		WHERE id=$1 AND runner_id=$2::uuid`,
+		jobID, runnerID, status, stage, progress, projectID, result, nullable(errorCode), nullable(errorMessage))
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		// The job belongs to another worker now; its result stands.
+		return ErrSuperseded
+	}
+	return nil
 }
 
 func (s Store) RequestCancel(ctx context.Context, owner, jobID string) error {

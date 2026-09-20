@@ -79,6 +79,8 @@ The geometry checks are real, not decorative. From the player's own jump speed a
 
 `POST /api/v1/projects/{id}/ai/pipeline` runs the same conveyor over an existing project and stores the result as a new revision, so the history keeps both versions.
 
+Jobs are claimed from the database, not from an in-process queue, so a job survives a restart and another instance can pick up work this one dropped. A claim carries both a lease and a runner id. The lease is only a wall-clock deadline: a host that sleeps, or a container whose clock jumps on wake, makes it read as expired within seconds and lets a second worker take a job the first is still running. The runner id is what actually decides ownership — every stage write is conditional on still holding it, so a superseded worker stops at the next stage instead of driving the whole conveyor a second time and paying for it twice. Step numbers come from the job rather than from the worker, so a restarted run continues the numbering instead of colliding with the earlier attempt.
+
 ## Context
 
 Every stage writes what it decided to `ai_context_entries`, filed under the job while it runs and under the project once it succeeds. The next request about that project reads those entries back into the prompts, so a later change knows the palette, the player numbers, and the design decisions of the earlier run instead of reinventing them. `GET /api/v1/projects/{id}/ai/context` returns the same material the agents read. `ai_job_steps` keeps the per-stage audit trail: which agent, which model, which provider, how long, and what it answered.

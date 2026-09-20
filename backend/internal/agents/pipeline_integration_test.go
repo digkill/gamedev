@@ -3,6 +3,7 @@ package agents
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"strings"
 	"sync"
@@ -390,5 +391,70 @@ func TestReclaimedJobKeepsNumberingSteps(t *testing.T) {
 		if step.Seq != i+1 {
 			t.Fatalf("step %d has seq %d; numbering must stay dense and unique", i, step.Seq)
 		}
+	}
+}
+
+// A worker whose claim was taken over must stop instead of running the
+// conveyor beside the new owner. The lease is a wall-clock deadline, so a host
+// that sleeps or a container whose clock jumps can make it read as expired
+// while the first worker is still going; the claim id is what actually decides
+// ownership.
+func TestSupersededWorkerStopsAndKeepsItsHandsOff(t *testing.T) {
+	pool := openTestDB(t)
+	owner := newTestUser(t, pool)
+	store := Store{DB: pool}
+	ctx := context.Background()
+
+	id, err := projects.NewUUID()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.CreateJob(ctx, id, NewJob{
+		OwnerID: owner, Kind: "create_game", Mode: "2d",
+		Prompt: "Платформер", IdempotencyKey: "superseded-" + owner,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	first, found, err := store.ClaimJob(ctx, time.Minute)
+	if err != nil || !found {
+		t.Fatalf("first claim: %v found=%v", err, found)
+	}
+	if first.RunnerID == "" {
+		t.Fatal("a claim must carry a runner id")
+	}
+
+	// The lease is judged expired and a second worker takes the job.
+	if _, err := pool.Exec(ctx, `UPDATE ai_jobs SET lease_expires_at = now() - interval '1 minute' WHERE id=$1`, id); err != nil {
+		t.Fatal(err)
+	}
+	second, found, err := store.ClaimJob(ctx, time.Minute)
+	if err != nil || !found || second.ID != id {
+		t.Fatalf("second claim: %v found=%v", err, found)
+	}
+	if second.RunnerID == first.RunnerID {
+		t.Fatal("each claim must get its own runner id")
+	}
+
+	// Everything the first worker still tries to do must be refused.
+	if _, err := store.Heartbeat(ctx, id, first.RunnerID, time.Minute); !errors.Is(err, ErrSuperseded) {
+		t.Fatalf("heartbeat of a lost claim: got %v, want ErrSuperseded", err)
+	}
+	if err := store.SetStage(ctx, id, first.RunnerID, "developer", 45); !errors.Is(err, ErrSuperseded) {
+		t.Fatalf("stage write of a lost claim: got %v, want ErrSuperseded", err)
+	}
+	if err := store.FinishJob(ctx, id, first.RunnerID, "failed", nil, nil, "INTERNAL", "stale"); !errors.Is(err, ErrSuperseded) {
+		t.Fatalf("finish by a lost claim: got %v, want ErrSuperseded", err)
+	}
+
+	// The owner still works, and the loser did not mark the job failed.
+	if _, err := store.Heartbeat(ctx, id, second.RunnerID, time.Minute); err != nil {
+		t.Fatalf("heartbeat of the current claim: %v", err)
+	}
+	job, err := store.Job(ctx, owner, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if job.Status != "running" || job.ErrorCode != "" {
+		t.Fatalf("the losing worker must not touch the outcome: status=%s error=%s", job.Status, job.ErrorCode)
 	}
 }

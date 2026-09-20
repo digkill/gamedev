@@ -16,6 +16,15 @@ import (
 
 var ErrCancelled = errors.New("job cancelled")
 
+// finish reports a closing write that lost the job as success: the worker that
+// took over is responsible for the outcome.
+func finish(err error) error {
+	if errors.Is(err, ErrSuperseded) {
+		return nil
+	}
+	return err
+}
+
 // Pipeline runs the conveyor for one job. Every stage writes a step row and a
 // context entry, so a finished job carries its own explanation of how the game
 // came to look the way it does.
@@ -60,6 +69,11 @@ func (p Pipeline) Run(ctx context.Context, job Job) error {
 	finishCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
 	defer cancel()
 	if err != nil {
+		if errors.Is(err, ErrSuperseded) {
+			// Another worker owns this job; it will report the outcome.
+			slog.Warn("pipeline stopped, job taken over by another worker", "job", job.ID)
+			return nil
+		}
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			// Leave the job claimable: the lease expires and another worker
 			// resumes the queue rather than reporting a failure the user did
@@ -69,22 +83,25 @@ func (p Pipeline) Run(ctx context.Context, job Job) error {
 		}
 		code, message := classify(err)
 		if errors.Is(err, ErrCancelled) {
-			return p.Store.FinishJob(finishCtx, job.ID, "cancelled", nil, nil, code, message)
+			return finish(p.Store.FinishJob(finishCtx, job.ID, job.RunnerID, "cancelled", nil, nil, code, message))
 		}
 		slog.Error("pipeline failed", "job", job.ID, "error", err)
-		return p.Store.FinishJob(finishCtx, job.ID, "failed", nil, nil, code, message)
+		return finish(p.Store.FinishJob(finishCtx, job.ID, job.RunnerID, "failed", nil, nil, code, message))
 	}
 	payload, marshalErr := json.Marshal(result)
 	if marshalErr != nil {
-		return p.Store.FinishJob(finishCtx, job.ID, "failed", nil, nil, "INTERNAL", "не удалось сохранить результат")
+		return finish(p.Store.FinishJob(finishCtx, job.ID, job.RunnerID, "failed", nil, nil, "INTERNAL", "не удалось сохранить результат"))
 	}
 	projectID := result.ProjectID
-	return p.Store.FinishJob(finishCtx, job.ID, "succeeded", &projectID, payload, "", "")
+	return finish(p.Store.FinishJob(finishCtx, job.ID, job.RunnerID, "succeeded", &projectID, payload, "", ""))
 }
 
 func (r *run) execute(ctx context.Context) (Result, error) {
 	if r.pipeline.Chat == nil || !r.pipeline.Chat.Configured() {
 		return Result{}, ai.ErrUnavailable
+	}
+	if r.job.RunnerID == "" {
+		return Result{}, errors.New("job was handed to the pipeline without a claim")
 	}
 	memory, err := r.memory(ctx)
 	if err != nil {
@@ -179,7 +196,7 @@ func (r *run) execute(ctx context.Context) (Result, error) {
 		return Result{}, &policyError{reasons: audit.PolicyViolations}
 	}
 
-	if err := r.pipeline.Store.SetStage(ctx, r.job.ID, "publishing", 95); err != nil {
+	if err := r.pipeline.Store.SetStage(ctx, r.job.ID, r.job.RunnerID, "publishing", 95); err != nil {
 		return Result{}, err
 	}
 	projectID, revisionID, err := r.publish(ctx, compiled)
@@ -501,7 +518,7 @@ func (r *run) step(ctx context.Context, agent Agent, prompt string, iteration in
 }
 
 func (r *run) beginStep(ctx context.Context, agent string, iteration, progress int) (string, error) {
-	if err := r.pipeline.Store.SetStage(ctx, r.job.ID, agent, progress); err != nil {
+	if err := r.pipeline.Store.SetStage(ctx, r.job.ID, r.job.RunnerID, agent, progress); err != nil {
 		return "", err
 	}
 	id, err := r.pipeline.NewID()
@@ -511,8 +528,12 @@ func (r *run) beginStep(ctx context.Context, agent string, iteration, progress i
 	return id, r.pipeline.Store.StartStep(ctx, id, r.job.ID, agent, iteration)
 }
 
+// checkCancel renews the lease and, in doing so, confirms this worker still
+// owns the job. It runs before every stage, so a worker that lost the job
+// stops after at most one wasted stage instead of running the whole conveyor
+// beside the new owner.
 func (r *run) checkCancel(ctx context.Context) error {
-	cancelRequested, err := r.pipeline.Store.Heartbeat(ctx, r.job.ID, 5*time.Minute)
+	cancelRequested, err := r.pipeline.Store.Heartbeat(ctx, r.job.ID, r.job.RunnerID, 5*time.Minute)
 	if err != nil {
 		return err
 	}
