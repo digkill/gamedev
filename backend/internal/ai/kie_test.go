@@ -154,6 +154,28 @@ func TestKieRetriesServerErrorsBeforeFallback(t *testing.T) {
 	}
 }
 
+// 530 means the route's origin is gone. Repeating it cannot help, and the
+// fallback model has to start before the client gives up.
+func TestKieDoesNotRetryOriginDown(t *testing.T) {
+	attempts := 0
+	chat := newTestKie(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/claude/v1/messages" {
+			attempts++
+			http.Error(w, "origin down", 530)
+			return
+		}
+		writeTestJSON(w, map[string]any{
+			"output": []map[string]any{{"type": "message", "content": []map[string]any{{"type": "output_text", "text": "{}"}}}},
+		})
+	}))
+	if _, err := chat.Chat(context.Background(), ChatRequest{User: "hi"}); err != nil {
+		t.Fatal(err)
+	}
+	if attempts != 1 {
+		t.Fatalf("a 530 must not be retried, got %d attempts", attempts)
+	}
+}
+
 func TestKieReportsProviderErrorWhenBothFail(t *testing.T) {
 	chat := newTestKie(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "nope", http.StatusForbidden)
@@ -297,5 +319,32 @@ func TestKieRetriesWithoutStreamingBeforeFallback(t *testing.T) {
 	}
 	if len(paths) != 2 || paths[0] != "/claude/v1/messages stream" || paths[1] != "/claude/v1/messages plain" {
 		t.Fatalf("unexpected attempts: %v", paths)
+	}
+}
+
+func TestKieStreamOriginDownSkipsPlainRetry(t *testing.T) {
+	var paths []string
+	chat := newTestKieStreaming(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		streaming := strings.Contains(string(body), `"stream":true`)
+		paths = append(paths, r.URL.Path+map[bool]string{true: " stream", false: " plain"}[streaming])
+		if r.URL.Path == "/claude/v1/messages" {
+			http.Error(w, "origin down", 530)
+			return
+		}
+		writeTestJSON(w, map[string]any{
+			"output": []map[string]any{{"type": "message", "content": []map[string]any{{"type": "output_text", "text": "{}"}}}},
+		})
+	}), true)
+	if _, err := chat.Chat(context.Background(), ChatRequest{User: "hi"}); err != nil {
+		t.Fatal(err)
+	}
+	if len(paths) < 2 || paths[0] != "/claude/v1/messages stream" || paths[1] != "/codex/v1/responses stream" {
+		t.Fatalf("530 must skip the plain Claude retry: %v", paths)
+	}
+	for _, path := range paths {
+		if path == "/claude/v1/messages plain" {
+			t.Fatalf("plain Claude retry after 530: %v", paths)
+		}
 	}
 }

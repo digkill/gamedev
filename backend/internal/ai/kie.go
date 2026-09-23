@@ -121,6 +121,12 @@ func (k *KieChat) claude(ctx context.Context, req ChatRequest) (ChatResponse, er
 		if err == nil || ctx.Err() != nil {
 			return response, err
 		}
+		// 530 means the Claude route itself is down (Cloudflare cannot reach
+		// the origin). A second form of the same request cannot succeed, and
+		// retrying it only spends the client's deadline before the fallback.
+		if gatewayStatus(err) == 530 {
+			return ChatResponse{}, err
+		}
 		// A gateway that rejects the streaming form still answers the plain
 		// one, so one non-streaming attempt comes before the fallback model.
 		slog.Warn("kie streaming attempt failed, retrying without streaming", "path", "/claude/v1/messages", "error", err)
@@ -278,7 +284,8 @@ func (k *KieChat) post(ctx context.Context, path string, payload map[string]any)
 			return raw, nil
 		}
 		lastErr = fmt.Errorf("kie %s returned %d: %s", path, status, snippet(raw))
-		if status != 429 && status < 500 {
+		// 530 is not a transient overload: the origin for this route is gone.
+		if status == 530 || (status != 429 && status < 500) {
 			return nil, lastErr
 		}
 	}
@@ -303,6 +310,29 @@ func (k *KieChat) once(ctx context.Context, path string, body []byte) ([]byte, i
 		return nil, response.StatusCode, err
 	}
 	return raw, response.StatusCode, nil
+}
+
+// gatewayStatus reads the HTTP status out of "kie <path> returned <code>:".
+// Errors that are not that shape return 0.
+func gatewayStatus(err error) int {
+	if err == nil {
+		return 0
+	}
+	const marker = " returned "
+	text := err.Error()
+	i := strings.Index(text, marker)
+	if i < 0 {
+		return 0
+	}
+	rest := text[i+len(marker):]
+	n := 0
+	for _, r := range rest {
+		if r < '0' || r > '9' {
+			break
+		}
+		n = n*10 + int(r-'0')
+	}
+	return n
 }
 
 // snippet keeps provider error text short and free of newlines for logs; it is
