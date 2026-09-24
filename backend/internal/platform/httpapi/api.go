@@ -50,6 +50,7 @@ type errorBody struct {
 
 func (a API) Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /{$}", root)
 	mux.HandleFunc("GET /health/live", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, map[string]string{"status": "ok"}) })
 	mux.HandleFunc("GET /health/ready", func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
@@ -488,6 +489,43 @@ func fail(w http.ResponseWriter, r *http.Request, status int, code, message stri
 	}
 	writeJSON(w, status, body)
 }
+
+func root(w http.ResponseWriter, r *http.Request) {
+	if strings.Contains(r.Header.Get("Accept"), "text/html") {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, rootPage)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{
+		"service": "gamedev",
+		"status":  "ok",
+		"health":  "/health/live",
+	})
+}
+
+const rootPage = `<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GameDev</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #111; color: #eee; font: 16px/1.5 system-ui, sans-serif; }
+  main { width: min(32rem, calc(100% - 2rem)); }
+  h1 { font-size: 1.5rem; font-weight: 600; margin: 0 0 .5rem; }
+  p { margin: 0; color: #aaa; }
+  a { color: #9cf; }
+</style>
+</head>
+<body>
+<main>
+  <h1>GameDev API работает</h1>
+  <p>Песочница для Misa. Проверка: <a href="/health/live">/health/live</a>.</p>
+</main>
+</body>
+</html>
+`
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
